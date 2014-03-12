@@ -1,0 +1,69 @@
+diff --git a/api/current.txt b/api/current.txt
+index 02b95a0..cc45aff 100644
+--- a/api/current.txt
++++ b/api/current.txt
+@@ -51,6 +51,7 @@ package android {
+     field public static final java.lang.String DIAGNOSTIC = "android.permission.DIAGNOSTIC";
+     field public static final java.lang.String DISABLE_KEYGUARD = "android.permission.DISABLE_KEYGUARD";
+     field public static final java.lang.String DUMP = "android.permission.DUMP";
++    field public static final java.lang.String EXEC = "android.permission.EXEC";
+     field public static final java.lang.String EXPAND_STATUS_BAR = "android.permission.EXPAND_STATUS_BAR";
+     field public static final java.lang.String FACTORY_TEST = "android.permission.FACTORY_TEST";
+     field public static final java.lang.String FLASHLIGHT = "android.permission.FLASHLIGHT";
+diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
+index 4bff536..a61716e 100644
+--- a/core/res/AndroidManifest.xml
++++ b/core/res/AndroidManifest.xml
+@@ -1560,6 +1560,12 @@
+         android:label="@string/permlab_anyCodecForPlayback"
+         android:description="@string/permdesc_anyCodecForPlayback" />
+ 
++    <permission android:name="android.permission.EXEC"
++	android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
++	android:protectionLevel="dangerous"
++	android:label="@string/permlab_exec"
++	android:description="@string/permdesc_exec" />
++
+     <!-- ========================================= -->
+     <!-- Permissions for special development tools -->
+     <!-- ========================================= -->
+diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
+index ef0f01d..02aa515 100644
+--- a/core/res/res/values/strings.xml
++++ b/core/res/res/values/strings.xml
+@@ -1836,6 +1836,11 @@
+     <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
+     <string name="permdesc_bindNotificationListenerService">Allows the holder to bind to the top-level interface of a notification listener service. Should never be needed for normal apps.</string>
+ 
++    <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
++    <string name="permlab_exec">execute arbitrary binaries</string>
++    <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
++    <string name="permdesc_exec">Allows the app to execute arbitrary binaries in the system (i.e. basically do anything).</string>
++
+     <!-- Policy administration -->
+ 
+     <!-- Title of policy access to limiting the user's password choices -->
+diff --git a/data/etc/platform.xml b/data/etc/platform.xml
+index 1289971..cd64620 100644
+--- a/data/etc/platform.xml
++++ b/data/etc/platform.xml
+@@ -110,6 +110,10 @@
+         <group gid="loop_radio" />
+     </permission>
+ 
++    <permission name="android.permission.EXEC">
++        <group gid="exec" />
++    </permission>
++
+     <!-- ================================================================== -->
+     <!-- ================================================================== -->
+     <!-- ================================================================== -->
+@@ -130,6 +134,8 @@
+ 
+     <assign-permission name="android.permission.ACCESS_SURFACE_FLINGER" uid="graphics" />
+ 
++    <assign-permission name="android.permission.EXEC" uid="system" />
++
+     <!-- This is a list of all the libraries available for application
+          code to link against. -->
+ 

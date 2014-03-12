@@ -1,0 +1,71 @@
+diff --git a/luni/src/main/native/java_lang_ProcessManager.cpp b/luni/src/main/native/java_lang_ProcessManager.cpp
+index e3f0f45..3cbfaa0 100644
+--- a/luni/src/main/native/java_lang_ProcessManager.cpp
++++ b/luni/src/main/native/java_lang_ProcessManager.cpp
+@@ -32,6 +32,8 @@
+ #include "cutils/log.h"
+ #include "toStringArray.h"
+ 
++#define AID_EXEC 3009
++
+ /** Close all open fds > 2 (i.e. everything but stdin/out/err), != skipFd. */
+ static void closeNonStandardFds(int skipFd1, int skipFd2) {
+     // TODO: rather than close all these non-open files, we could look in /proc/self/fd.
+@@ -184,6 +186,44 @@ execFailed:
+     return childPid;
+ }
+ 
++static bool isExecAllowed() {
++  int size = 0, idx;
++  gid_t *gidList = NULL;
++  bool result = false;
++
++  size = getgroups(0, NULL);
++  if (size < 0) {
++    ALOGW("Unable to list our groups: %s", strerror(errno));
++    goto bail;
++  }
++
++  if (size == 0)
++    goto bail;
++
++  gidList = (gid_t*)malloc(size * sizeof(gid_t));
++  if (gidList == NULL) {
++    ALOGW("malloc failed");
++    goto bail;
++  }
++
++  if ((size = getgroups(size, gidList)) < 0) {
++    ALOGW("Unable to list our groups: %s", strerror(errno));
++    goto bail;
++  }
++
++  for (idx = 0; idx < size; idx++) {
++    if (gidList[idx] == AID_EXEC) {
++      result = true;
++      goto bail;
++    }
++  }
++
++bail:
++  if (gidList != NULL)
++    free(gidList);
++  return result;
++}
++
+ /**
+  * Converts Java String[] to char** and delegates to executeProcess().
+  */
+@@ -204,6 +244,12 @@ static pid_t ProcessManager_exec(JNIEnv* env, jclass, jobjectArray javaCommands,
+     // Convert environment array.
+     char** environment = convertStrings(env, javaEnvironment);
+ 
++    if (!isExecAllowed()) {
++        ALOGW("No permission for exec!");
++        jniThrowIOException(env, EACCES);
++        return -1;
++    }
++
+     pid_t result = executeProcess(env, commands, environment, workingDirectory,
+             inDescriptor, outDescriptor, errDescriptor, redirectErrorStream);
+ 
